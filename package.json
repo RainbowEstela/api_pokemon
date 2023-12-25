@@ -1,0 +1,19 @@
+{
+  "name": "api-pokemon",
+  "version": "0.0.1",
+  "description": "pryecto de clase de api de pokemons",
+  "main": "index.js",
+  "repository": "https://github.com/RainbowEstela/api_pokemon.git",
+  "author": "Estela <eloiseruiz15@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
