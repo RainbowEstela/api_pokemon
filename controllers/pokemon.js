@@ -1,16 +1,76 @@
 const Pokemon = require('../models/pokemon');
 
-function getPokemon(req,res) {
-    res.status(200).send({
-        msg: "la miqota desde controllers"
-    });
+/**
+ * devuelve todos los pokemons de la base de datos
+ * @param {*} req 
+ * @param {*} res 
+ */
+async function getPokemon(req,res) {
+    try {
+        const pokemons = await Pokemon.find().sort({nombre: 1});
+
+        if(!pokemons) {
+            res.status(400).send({msg: "error recuperando pokemons"});
+        } else {
+            res.status(200).send(pokemons);
+        }
+    } catch (error) {
+        res.status(500).send(error);
+    }
 }
 
+/**
+ * devuelve el pokemon que coincida por id
+ * @param {*} req 
+ * @param {*} res 
+ */
+async function getPokemonById(req,res) {
+    try {
+        const id = req.params.id;
+
+        const pokemon = await Pokemon.findById(id);
+    
+        if(!pokemon) {
+            res.status(400).send({msg: "error al recuperar pokemon"});
+        } else {
+            res.status(200).send(pokemon);
+        }
+    } catch (error) {
+        res.status(500).send(error);
+    }
+   
+}
+
+/**
+ * devuelve todos los pokemon que contengan el nombre
+ * @param {*} req 
+ * @param {*} res 
+ */
+async function getPokemonByName(req,res) {
+    try {
+        const name = req.params.name;
+
+        const pokemon = await Pokemon.find({nombre: { "$regex": name, "$options": "i" }});
+
+        if(!pokemon) {
+            res.status(400).send({msg: "error al recuperar pokemon"});
+        } else {
+            res.status(200).send(pokemon);
+        }
+    } catch (error) {
+        res.status(500).send(error);
+    }
+}
+
+/**
+ * crea un pokemon con los parametros pasados
+ * @param {*} req 
+ * @param {*} res 
+ */
 async function createPokemon(req, res) {
     const pokemon = new Pokemon();
     const params = req.body;
 
-    pokemon.id = 1;
     pokemon.nombre = params.nombre;
     pokemon.especie = params.especie;
     pokemon.preevolucion = params.preevolucion;
@@ -29,7 +89,7 @@ async function createPokemon(req, res) {
         if(!pokemonStore) {
             res.status(400).send({msg: "no se guardó el pokemon"});   
         } else {
-            res.status(200).send({pokemon: pokemonStore});
+            res.status(201).send({pokemon: pokemonStore});
         }
         
     } catch (error) {
@@ -39,5 +99,5 @@ async function createPokemon(req, res) {
 }
 
 module.exports = {
-    getPokemon,createPokemon,
+    getPokemon,createPokemon,getPokemonById,getPokemonByName,
 }

@@ -14,10 +14,6 @@ const AtaqueSchema = Schema({
 })
 
 const PokemonSchema = Schema ({
-    id: {
-        type: Number,
-        require: true
-    },
 
     nombre: {
         type: String,
