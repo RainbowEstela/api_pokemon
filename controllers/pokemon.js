@@ -63,6 +63,50 @@ async function getPokemonByName(req,res) {
 }
 
 /**
+ * devuelve los pokemons agrupados por tipo y ordenados por nombre
+ * @param {*} req 
+ * @param {*} res 
+ */
+async function getPokemonGroupByType(req,res) {
+    try {
+        const type = req.params.type;
+
+        const pokemons = await Pokemon.aggregate([
+            {"$unwind": '$tipo'},
+
+            {
+                "$group": {
+                  "_id": '$tipo',
+                  "documents": { "$push": '$$ROOT' }
+                }
+              },
+              { "$sort": { '_id': 1 } },
+              {
+                "$project": {
+                  "_id": 0,
+                  "type": '$_id',
+                  "documents": {
+                    "$sort": { 'nombre': 1 }
+                  }
+                }
+              }
+        ]);
+
+
+        if(!pokemons) {
+            res.status(400).send({msg: "error al recuperar pokemons"});
+        } else {
+            res.status(200).send(pokemons);
+        }
+    } catch (error) {
+        res.status(500).send(error);
+    }
+  
+
+
+}
+
+/**
  * crea un pokemon con los parametros pasados
  * @param {*} req 
  * @param {*} res 
@@ -98,6 +142,90 @@ async function createPokemon(req, res) {
 
 }
 
+/**
+ * borra el pokemon de la misma id
+ * @param {*} req 
+ * @param {*} res 
+ */
+async function deletePokemon(req,res) {
+    try {
+        const id = req.params.id;
+
+        const pokemon = await Pokemon.findByIdAndDelete(id);
+
+
+        if(!pokemon) {
+            res.status(400).send({msg: "error al borrar pokemon"});
+        } else {
+            res.status(200).send(pokemon);
+        }
+    } catch (error) {
+        res.status(500).send(error);
+    }
+}
+
+/**
+ * hace daño a un pokemon y si su vida es cero lo cambia a fuera de combate
+ * @param {*} req 
+ * @param {*} res 
+ */
+async function attackPokemon(req,res) {
+    try {
+        const id = req.params.id;
+        const damage = req.params.damage;
+
+        const pokemon = await Pokemon.findById(id);
+
+        let currentHealth = parseFloat(pokemon.puntosSaludJuego) - parseFloat(damage);
+
+        if(currentHealth <= 0) {
+            currentHealth = 0;
+            pokemon.fueraDeCombate = true;
+        }
+
+        pokemon.puntosSaludJuego = currentHealth;
+
+
+        const pokemonUpdated = await Pokemon.findByIdAndUpdate(id,pokemon);
+
+        if (!pokemonUpdated) {
+            res.status(400).send({ msg: "Error modificando pokemon"});
+        } else {
+            res.status(200).send(await Pokemon.findById(id));
+        }
+        
+    } catch (error) {
+        res.status(500).send(error);
+    }
+}
+
+/**
+ * restaura la salud de un pokemon
+ * @param {*} req 
+ * @param {*} res 
+ */
+async function restorePokemon(req,res) {
+    try {
+        const id = req.params.id;
+        const pokemon = await Pokemon.findById(id);
+
+        pokemon.puntosSaludJuego = parseFloat(pokemon.vida);
+        pokemon.fueraDeCombate = false;
+
+        const pokemonUpdated = await Pokemon.findByIdAndUpdate(id,pokemon);
+
+        if (!pokemonUpdated) {
+            res.status(400).send({ msg: "Error modificando pokemon"});
+        } else {
+            res.status(200).send(await Pokemon.findById(id));
+        }
+
+
+    } catch (error) {
+        res.status(500).send(error);
+    }
+}
+
 module.exports = {
-    getPokemon,createPokemon,getPokemonById,getPokemonByName,
+    getPokemon,createPokemon,getPokemonById,getPokemonByName,getPokemonGroupByType,deletePokemon,attackPokemon,restorePokemon,
 }
