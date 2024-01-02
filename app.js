@@ -18,8 +18,10 @@ app.use((req, res, next) => {
 
 // cargar rutas
 const pokemon_routes = require("./routes/pokemon");
+const user_routes = require("./routes/user");
 
 // rutas base
 app.use("/api" , pokemon_routes);
+app.use("/api" , user_routes);
 
 module.exports = app;
