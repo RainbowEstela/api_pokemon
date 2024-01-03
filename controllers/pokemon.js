@@ -72,24 +72,10 @@ async function getPokemonGroupByType(req,res) {
         const type = req.params.type;
 
         const pokemons = await Pokemon.aggregate([
-            {"$unwind": '$tipo'},
-
-            {
-                "$group": {
-                  "_id": '$tipo',
-                  "documents": { "$push": '$$ROOT' }
-                }
-              },
-              { "$sort": { '_id': 1 } },
-              {
-                "$project": {
-                  "_id": 0,
-                  "type": '$_id',
-                  "documents": {
-                    "$sort": { 'nombre': 1 }
-                  }
-                }
-              }
+            {$unwind: '$tipo'},
+            {$match: {tipo:type}},
+            {$sort: {nombre: 1}},
+            {$group: {_id:"$tipos", elementos: {$push: "$$ROOT"}}}
         ]);
 
 
